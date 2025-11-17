@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { Page, Settings, HeroDatabaseEntry } from './types';
 import Header from './components/Header';
@@ -11,10 +10,12 @@ import RoadmapPage from './pages/BuildQueuePage';
 import FurnitureDuplicatesPage from './pages/FurnitureDuplicatesPage';
 import DatabasePage from './pages/DatabasePage';
 import useLocalStorage from './hooks/useLocalStorage';
-import { DEFAULT_SHEET_URL } from './constants';
+import { DEFAULT_SHEET_URL, GUILD_URL } from './constants';
 import BackupReminderModal from './components/BackupReminderModal';
 import { performBackupAndRecordTimestamp } from './services/backupService';
 import { syncDatabaseWithSource } from './services/sheetService';
+import BottomNav from './components/BottomNav';
+import TabletNav from './components/TabletNav';
 
 const App: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<Page>('landing');
@@ -115,16 +116,6 @@ const App: React.FC = () => {
         setCurrentPage(page);
     }, []);
 
-    const handleToggleTips = () => {
-        setSettings(prev => {
-            const newShowTips = !prev.showTips;
-            if (newShowTips) {
-                sessionStorage.removeItem('tipWidgetClosed');
-            }
-            return { ...prev, showTips: newShowTips };
-        });
-    };
-
     const renderPage = () => {
         const commonProps = {
             navigate,
@@ -155,7 +146,7 @@ const App: React.FC = () => {
                 return <DatabasePage {...commonProps} />;
             case 'landing':
             default:
-                return <LandingPage navigate={navigate} />;
+                return <LandingPage navigate={navigate} database={database} />;
         }
     };
 
@@ -164,8 +155,6 @@ const App: React.FC = () => {
             <Header
               navigate={navigate}
               currentPage={currentPage}
-              onToggleTips={handleToggleTips}
-              showTips={settings.showTips}
             />
             
             {databaseIncomplete && currentPage === 'landing' && (
@@ -183,7 +172,7 @@ const App: React.FC = () => {
                 </div>
             )}
 
-            <main className="flex-grow container mx-auto p-4 md:p-6">
+            <main className="flex-grow container mx-auto p-2 sm:p-4 md:p-6 pb-24 lg:pb-6">
                 {isSyncing && database.length === 0 && (
                      <div className="text-center py-20">
                         <i className="fas fa-sync-alt fa-spin fa-3x text-red-500"></i>
@@ -203,15 +192,21 @@ const App: React.FC = () => {
                 )}
                 {database.length > 0 && renderPage()}
             </main>
-            <footer className="text-center p-4 text-gray-500 text-sm">
+
+            <BottomNav navigate={navigate} currentPage={currentPage} />
+            <TabletNav navigate={navigate} currentPage={currentPage} />
+
+            <footer className="text-center p-4 text-gray-500 text-sm pb-24 lg:pb-4">
                 <p>
-                    Gremio
-                    <span className="inline-flex items-center gap-1.5 mx-1">
-                        <img src="https://flagcdn.com/es.svg" alt="Bandera de España" className="h-3" />
-                        <span className="font-semibold text-gray-400">HISPANIA</span>
-                        <img src="https://flagcdn.com/es.svg" alt="Bandera de España" className="h-3" />
-                    </span>
-                    ID: 7642
+                    <a href={GUILD_URL} target="_blank" rel="noopener noreferrer" className="group text-gray-500 transition-colors hover:text-red-400">
+                        Gremio
+                        <span className="inline-flex items-center gap-1.5 mx-1">
+                            <img src="https://flagcdn.com/es.svg" alt="Bandera de España" className="h-3" />
+                            <span className="font-semibold text-gray-400 group-hover:text-red-400 transition-colors">HISPANIA</span>
+                            <img src="https://flagcdn.com/es.svg" alt="Bandera de España" className="h-3" />
+                        </span>
+                    </a>
+                    | ID: 7642
                 </p>
             </footer>
             <BackupReminderModal

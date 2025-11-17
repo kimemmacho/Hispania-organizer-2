@@ -313,6 +313,19 @@
         animation: mismatch-row-glow 2s ease-in-out infinite;
     }
 
+    /* New styles for bottom navigation */
+    @keyframes bottom-nav-glow {
+      0%, 100% {
+        filter: drop-shadow(0 0 3px rgba(239, 68, 68, 0.7));
+      }
+      50% {
+        filter: drop-shadow(0 0 8px rgba(239, 68, 68, 1));
+      }
+    }
+    .bottom-nav-active-glow {
+        animation: bottom-nav-glow 2s ease-in-out infinite;
+    }
+
 </style>
 </head>
 <body class="bg-gray-900 text-gray-100">

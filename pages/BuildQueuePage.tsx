@@ -112,6 +112,7 @@ const WatchlistReplaceModal: React.FC<WatchlistReplaceModalProps> = ({ isOpen, o
                                     tier={tierMap.get(hero.originalName) || 'N/A'}
                                     onClick={() => onReplace(index)}
                                     isDisappearing={false}
+                                    layout="watchlist"
                                 />
                            ) : null
                         ))}
@@ -469,12 +470,13 @@ const RoadmapPage: React.FC<RoadmapPageProps> = ({ navigate, database, settings 
                                             onClick={() => handleInvestmentHeroClick(hero, 'watchlist')}
                                             progress={progressPercentage}
                                             subText={subText}
+                                            layout="watchlist"
                                         />
                                     );
                                 }
                             }
                             return (
-                                <div key={`placeholder-${index}`} onClick={() => handlePlaceholderClick(index)} className="bg-gray-800/50 border-2 border-dashed border-gray-600 rounded-lg w-44 h-[188px] flex-shrink-0 flex items-center justify-center cursor-pointer hover:bg-gray-700/50 hover:border-red-500 transition-all">
+                                <div key={`placeholder-${index}`} onClick={() => handlePlaceholderClick(index)} className="bg-gray-800/50 border-2 border-dashed border-gray-600 rounded-lg w-44 h-64 flex-shrink-0 flex items-center justify-center cursor-pointer hover:bg-gray-700/50 hover:border-red-500 transition-all">
                                     <i className="fas fa-plus text-gray-500 text-4xl"></i>
                                 </div>
                             );

@@ -651,7 +651,7 @@ const DatabasePage: React.FC<DatabasePageProps> = ({
 
     return (
         <div className="flex flex-col h-full">
-            <div className="bg-gray-800/70 backdrop-blur-sm p-6 rounded-xl mb-6 border border-gray-700/80">
+            <div className="bg-gray-800/70 backdrop-blur-sm p-4 md:p-6 rounded-xl mb-6 border border-gray-700/80">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h1 className="text-3xl font-extrabold text-white text-shadow-heavy">Base de Datos de Héroes</h1>
@@ -746,6 +746,7 @@ const DatabasePage: React.FC<DatabasePageProps> = ({
             </div>
             
             <div className="flex-grow overflow-auto">
+              <div className="overflow-x-auto">
                 <table className="min-w-full text-sm text-left">
                     <thead className="sticky top-0 z-10">
                         <tr className="bg-gradient-to-b from-gray-900 to-gray-800 border-b-2 border-red-700">
@@ -927,6 +928,7 @@ const DatabasePage: React.FC<DatabasePageProps> = ({
                         })}
                     </tbody>
                 </table>
+              </div>
             </div>
             {activeModal && currentHeroForModal && (
                 <MiniModalSelector

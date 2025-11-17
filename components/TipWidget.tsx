@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
 // FIX: Add `FurniturePriority` to the import to correctly type the `priorities` state.
-import { PriorityHero, PlayerData, Hero, PlayerHeroData, Settings, Page, FurniturePriority } from '../types';
+import { PriorityHero, PlayerData, Hero, PlayerHeroData, Settings, Page, FurniturePriority, HeroDatabaseEntry } from '../types';
 import HeroPortrait from './HeroPortrait';
 import { GROUP_ORDER, DEFAULT_SHEET_URL } from '../constants';
 import { CloseIcon } from './icons';
@@ -105,13 +104,14 @@ const T4OptimizationModal: React.FC<T4OptimizationModalProps> = ({ isOpen, onClo
 // --- Main Widget Component ---
 interface TipWidgetProps {
     navigate: (page: Page) => void;
+    database: HeroDatabaseEntry[];
 }
 
 type RegularTip = { type: 'regular', hero: PriorityHero; text: string; goal: { from: string, to: string } };
 type FinishT4Tip = { type: 'finishT4', text: string; heroes: PriorityHero[] };
 type Tip = RegularTip | FinishT4Tip;
 
-const TipWidget: React.FC<TipWidgetProps> = ({ navigate }) => {
+const TipWidget: React.FC<TipWidgetProps> = ({ navigate, database }) => {
     const [settings] = useLocalStorage<Settings>('afk-settings', {
         sheetUrl: DEFAULT_SHEET_URL,
         autoUpdate: true,
@@ -122,10 +122,8 @@ const TipWidget: React.FC<TipWidgetProps> = ({ navigate }) => {
     const [isVisible, setIsVisible] = useState(false);
     const [hasBeenClosed, setHasBeenClosed] = useState(() => sessionStorage.getItem('tipWidgetClosed') === 'true');
 
-    const [priorityHeroes] = useLocalStorage<PriorityHero[]>('priority-heroes-data', []);
     const [playerData, setPlayerData] = useLocalStorage<PlayerData>('player-hero-data', {});
     const [watchlistSlots, setWatchlistSlots] = useLocalStorage<(string | null)[]>('watchlist-slots', Array(5).fill(null));
-    const [rankingHeroes] = useLocalStorage<Hero[]>('heroes-data', []);
     const [ignoredTips, setIgnoredTips] = useLocalStorage<Record<string, string[]>>('ignored-tips', {});
     const [priorities] = useLocalStorage<Record<string, FurniturePriority>>('furniture-priority-data', {});
     
@@ -134,6 +132,44 @@ const TipWidget: React.FC<TipWidgetProps> = ({ navigate }) => {
     const [heroToEdit, setHeroToEdit] = useState<PriorityHero | null>(null);
     const [editedHeroBuilds, setEditedHeroBuilds] = useState<PriorityHero[]>([]);
     const [watchlistBeforeEdit, setWatchlistBeforeEdit] = useState<(string | null)[] | null>(null);
+
+    const priorityHeroes: PriorityHero[] = useMemo(() => {
+        if (!database) return [];
+        return database.flatMap(dbEntry => 
+            dbEntry.builds.map(build => ({
+                originalName: dbEntry.key,
+                name: dbEntry.spanishName,
+                faction: dbEntry.faction,
+                isNameTranslated: !!dbEntry.spanishName,
+                group: dbEntry.tier,
+                priorityComment: build.priorityComment,
+                commentIsTranslated: !!build.priorityCommentIsTranslated,
+                score: dbEntry.score,
+                requiredSI: build.requiredSI,
+                requiredFurniture: build.requiredFurniture,
+                requiredEngravings: build.requiredEngravings,
+                engravingNodes: build.engravingNodes,
+                isAlternative: build.isAlternative,
+                isAwakened: dbEntry.isAwakened,
+            }))
+        );
+    }, [database]);
+
+    const rankingHeroes: Hero[] = useMemo(() => {
+        if (!database) return [];
+        return database.map(dbEntry => ({
+            faction: dbEntry.faction,
+            name: dbEntry.spanishName,
+            comments: dbEntry.rankingComments,
+            tier: dbEntry.tier,
+            score: dbEntry.score,
+            originalName: dbEntry.key,
+            isNameTranslated: !!dbEntry.spanishName,
+            isFactionTranslated: true,
+            commentIsTranslated: !!dbEntry.rankingCommentIsTranslated,
+            isAwakened: dbEntry.isAwakened,
+        }));
+    }, [database]);
 
     const prioritySort = useCallback((a: PriorityHero, b: PriorityHero): number => {
         const groupA = GROUP_ORDER[a.group] || 99;
@@ -150,7 +186,7 @@ const TipWidget: React.FC<TipWidgetProps> = ({ navigate }) => {
     }, []);
 
     const maxInvestmentMap = useMemo(() => {
-        const map = new Map<string, { si: number, furniture: number, engravings: number }>();
+        const map = new Map<string, { si: number; furniture: number; engravings: number }>();
         priorityHeroes.forEach(hero => {
             const currentMax = map.get(hero.originalName) || { si: 0, furniture: 0, engravings: 0 };
             map.set(hero.originalName, {
@@ -374,7 +410,7 @@ const TipWidget: React.FC<TipWidgetProps> = ({ navigate }) => {
             }
 
             return (
-                <div className="fixed bottom-4 right-4 sm:bottom-5 sm:right-5 bg-gray-800/95 backdrop-blur-sm border border-yellow-600/50 rounded-lg shadow-2xl p-4 max-w-2xl w-[calc(100%-2rem)] sm:w-full z-40 animate-[slide-in-right_0.5s_ease-out]">
+                <div className="fixed bottom-24 lg:bottom-5 right-4 sm:right-5 bg-gray-800/95 backdrop-blur-sm border border-yellow-600/50 rounded-lg shadow-2xl p-4 max-w-2xl w-[calc(100%-2rem)] sm:w-full z-40 animate-[slide-in-right_0.5s_ease-out]">
                     <div className="absolute top-2 right-2 flex items-center gap-2 z-10">
                         <button
                             onClick={handleRefresh}
@@ -433,10 +469,11 @@ const TipWidget: React.FC<TipWidgetProps> = ({ navigate }) => {
     
         // Regular Tip
         const { hero, text, goal } = tip;
+        // FIX: Define `tipTextParts` by splitting the tip text by the hero's name to resolve a "Cannot find name" error and enable highlighting of the hero's name within the tip.
         const tipTextParts = text.split(hero.name);
         return (
             <div 
-                className="fixed bottom-4 right-4 sm:bottom-5 sm:right-5 bg-gray-800/95 backdrop-blur-sm border border-red-700/50 rounded-lg shadow-2xl p-4 max-w-xs sm:max-w-sm w-[calc(100%-2rem)] sm:w-full z-40 animate-[slide-in-right_0.5s_ease-out]"
+                className="fixed bottom-24 lg:bottom-5 right-4 sm:right-5 bg-gray-800/95 backdrop-blur-sm border border-red-700/50 rounded-lg shadow-2xl p-4 max-w-xs sm:max-w-sm w-[calc(100%-2rem)] sm:w-full z-40 animate-[slide-in-right_0.5s_ease-out]"
             >
                 <div className="absolute top-2 right-2 flex items-center gap-2 z-10">
                      <button
@@ -530,7 +567,7 @@ const TipWidget: React.FC<TipWidgetProps> = ({ navigate }) => {
                     }
                      @keyframes slide-up {
                         from { transform: translateY(2rem) scale(0.95); opacity: 0; }
-                        to { transform: translateY(0) scale(1); opacity: 1; }
+                        to { opacity: 1; }
                     }
                 `}
             </style>

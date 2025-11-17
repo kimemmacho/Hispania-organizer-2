@@ -81,9 +81,10 @@ interface HeroCardProps {
     isAwakened?: boolean;
     progress?: number;
     rank?: number;
+    layout?: 'default' | 'watchlist';
 }
 
-export const HeroCard: React.FC<HeroCardProps> = ({ hero, tier, subText, onClick, onRemove, subTextFromColor, isDisappearing, isAwakened = false, progress, rank }) => {
+export const HeroCard: React.FC<HeroCardProps> = ({ hero, tier, subText, onClick, onRemove, subTextFromColor, isDisappearing, isAwakened = false, progress, rank, layout = 'default' }) => {
     const { borderClass } = getTierStyling(tier);
     const portraitGlowClass = isAwakened ? getPortraitGlowClass(tier) : '';
 
@@ -132,7 +133,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({ hero, tier, subText, onClick
                 <FactionIcon faction={hero.faction} />
                 <TierBadge tier={tier || '?'} />
             </div>
-            <div className="mt-2 w-full flex flex-col gap-1 pt-1">
+            <div className="mt-auto w-full flex flex-col gap-1 pt-1">
                 {subText && (
                     <div className="flex items-center justify-center gap-1 text-xs">
                         <span className={`font-mono font-bold ${subTextFromColor || 'text-gray-400'}`}>{subText.from}</span>
@@ -155,7 +156,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({ hero, tier, subText, onClick
         </>
     );
 
-    const commonClasses = `relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-3 w-44 h-[188px] flex-shrink-0 shadow-lg border border-gray-700 text-center flex flex-col items-center transition-all duration-300 ${isDisappearing ? 'epic-disappear' : ''} ${isAwakened ? 'awakened-hero-card' : ''}`;
+    const commonClasses = `relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-3 ${layout === 'watchlist' ? 'w-44 h-64' : 'w-44 h-[188px]'} flex-shrink-0 shadow-lg border border-gray-700 text-center flex flex-col items-center justify-between transition-all duration-300 ${isDisappearing ? 'epic-disappear' : ''} ${isAwakened ? 'awakened-hero-card' : ''}`;
 
     if (onClick) {
         return (

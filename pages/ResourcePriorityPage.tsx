@@ -1,7 +1,3 @@
-
-
-
-
 // FIX: Imported `useEffect` to resolve hook-related errors.
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
@@ -248,7 +244,7 @@ const ResourcePriorityPage: React.FC<ResourcePriorityPageProps> = ({ database, s
 
     return (
         <div>
-            <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl border border-gray-700/80 mb-6 flex flex-col gap-4">
+            <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-4 md:p-6 rounded-xl border border-gray-700/80 mb-6 flex flex-col gap-4">
                 {/* --- Top Row: Title, Factions, Update Button --- */}
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full">
                     <div>
@@ -256,7 +252,7 @@ const ResourcePriorityPage: React.FC<ResourcePriorityPageProps> = ({ database, s
                         {lastSync && <p className="text-sm text-gray-400">Datos actualizados: {new Date(lastSync).toLocaleString('es-ES')}</p>}
                     </div>
 
-                    <div className="flex items-center flex-col sm:flex-row gap-4 w-full md:w-auto">
+                    <div className="flex items-center flex-col sm:flex-row gap-4 w-full md:w-auto flex-wrap justify-center">
                         <div className="flex items-center justify-center flex-wrap gap-2" role="group" aria-label="Filtro de facción">
                            <button
                                 onClick={() => { setSelectedFactions(new Set()); setShowAwakenedOnly(false); }}
@@ -327,15 +323,15 @@ const ResourcePriorityPage: React.FC<ResourcePriorityPageProps> = ({ database, s
                 </div>
 
                 {/* --- Bottom Row: Search & Toggles --- */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full pt-4 border-t border-gray-700/50">
+                <div className="flex flex-col lg:flex-row items-center justify-between gap-4 w-full pt-4 border-t border-gray-700/50">
                     <input
                         type="text"
                         placeholder="Buscar héroe..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-500 w-full sm:w-auto max-w-xs"
+                        className="bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-500 w-full lg:w-auto max-w-xs"
                     />
-                    <div className="flex items-center gap-x-6 gap-y-2 flex-wrap justify-center sm:justify-end">
+                    <div className="flex items-center gap-x-6 gap-y-2 flex-wrap justify-center lg:justify-end">
                         <label className="flex items-center cursor-pointer">
                             <span className="mr-3 text-sm text-gray-300">Ocultar completados</span>
                             <div className="relative">

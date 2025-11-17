@@ -1,9 +1,10 @@
+
 import React, { useState, useCallback } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { Settings, Page, HeroDatabaseEntry } from '../types';
 import { convertToTSVExportURL } from '../utils';
 import { syncDatabaseWithSource } from '../services/sheetService';
-import { performBackupAndRecordTimestamp } from '../services/backupService';
+import { performBackupAndRecordTimestamp, restoreFromBackupFile } from '../services/backupService';
 import { LoadingSpinner } from '../components/icons';
 import ConfirmationModal from '../components/ConfirmationModal';
 
@@ -69,37 +70,20 @@ const OptionsPage: React.FC<OptionsPageProps> = ({ navigate, settings, setSettin
     };
 
 
-    const handleRestore = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleRestore = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const content = e.target?.result as string;
-                    const restoredData = JSON.parse(content);
-                    
-                    if (typeof restoredData.settings !== 'object' || !restoredData.heroDatabase) {
-                        throw new Error("El archivo no parece ser una copia de seguridad válida y actualizada.");
-                    }
-
-                    // Clear existing data before restoring
-                    localStorage.clear();
-
-                    localStorage.setItem('hero-database', JSON.stringify(restoredData.heroDatabase));
-                    localStorage.setItem('afk-settings', JSON.stringify(restoredData.settings));
-                    if (restoredData.playerHeroData) localStorage.setItem('player-hero-data', JSON.stringify(restoredData.playerHeroData));
-                    if (restoredData.furniturePriorityData) localStorage.setItem('furniture-priority-data', JSON.stringify(restoredData.furniturePriorityData));
-                    // etc. for any other specific keys
-                    
-                    alert('Copia de seguridad restaurada con éxito. La página se recargará para aplicar los cambios.');
-                    window.location.reload();
-                } catch (error) {
-                    console.error("Restore error:", error);
-                    alert(`Error al restaurar: ${error instanceof Error ? error.message : 'Error desconocido.'}`);
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = '';
+            try {
+                await restoreFromBackupFile(file);
+                alert('Copia de seguridad restaurada con éxito. La página se recargará para aplicar los cambios.');
+                window.location.reload();
+            } catch (error) {
+                console.error("Restore error:", error);
+                alert(`Error al restaurar: ${error instanceof Error ? error.message : 'Error desconocido.'}`);
+            } finally {
+                // Reset file input to allow restoring the same file again
+                event.target.value = '';
+            }
         }
     };
     
@@ -162,6 +146,32 @@ const OptionsPage: React.FC<OptionsPageProps> = ({ navigate, settings, setSettin
                     )}
                 </div>
                 
+                <div className="bg-gray-800 p-6 rounded-lg">
+                    <h2 className="text-xl font-semibold mb-4">Interfaz</h2>
+                    <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Mostrar consejos rápidos en la página de inicio</span>
+                        <label htmlFor="show-tips-toggle" className="flex items-center cursor-pointer">
+                            <div className="relative">
+                                <input
+                                    type="checkbox"
+                                    id="show-tips-toggle"
+                                    className="sr-only"
+                                    checked={settings.showTips}
+                                    onChange={(e) => {
+                                        const newShowTips = e.target.checked;
+                                        if (newShowTips) {
+                                            sessionStorage.removeItem('tipWidgetClosed');
+                                        }
+                                        setSettings(prev => ({ ...prev, showTips: newShowTips }));
+                                    }}
+                                />
+                                <div className={`block w-10 h-6 rounded-full transition-colors ${settings.showTips ? 'bg-red-600' : 'bg-gray-600'}`}></div>
+                                <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${settings.showTips ? 'transform translate-x-4' : ''}`}></div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                  <div className="bg-gray-800 p-6 rounded-lg border border-yellow-600/50 shadow-lg">
                     <h2 className="text-xl font-semibold mb-4 text-yellow-400">Modo Avanzado</h2>
                     <p className="text-sm text-gray-400 mb-4">Modifica directamente la base de datos local de héroes, gestiona conflictos de datos y añade nuevos héroes manualmente.</p>

@@ -1,10 +1,12 @@
+
 import React from 'react';
-import { Page } from '../types';
+import { Page, HeroDatabaseEntry } from '../types';
 import { GUILD_URL } from '../constants';
 import TipWidget from '../components/TipWidget';
 
 interface LandingPageProps {
     navigate: (page: Page) => void;
+    database: HeroDatabaseEntry[];
 }
 
 const FeatureCard: React.FC<{ 
@@ -47,7 +49,7 @@ const FeatureCard: React.FC<{
     return <div onClick={onClick} {...commonProps}>{content}</div>;
 };
 
-const LandingPage: React.FC<LandingPageProps> = ({ navigate }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ navigate, database }) => {
     return (
         <div className="flex flex-col gap-8 h-full">
              <div className="text-center py-8 px-6 bg-gray-800/40 rounded-xl border border-gray-700/50 shrink-0">
@@ -104,7 +106,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ navigate }) => {
                 />
             </div>
             
-            <TipWidget navigate={navigate} />
+            <TipWidget navigate={navigate} database={database} />
         </div>
     );
 };
